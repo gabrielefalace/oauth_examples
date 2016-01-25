@@ -21,16 +21,21 @@ import org.springframework.security.oauth2.provider.token.store.JdbcTokenStore;
 public class AuthserverApplication extends AuthorizationServerConfigurerAdapter {
 
 	@Autowired
-	AuthenticationManager manager;
+	public AuthenticationManager manager;
 	
-	@Bean
-	public TokenStore tokenStore() {
-		EmbeddedDatabaseBuilder builder = new EmbeddedDatabaseBuilder();
-		DataSource dataSource = builder.setType(EmbeddedDatabaseType.H2)
-				.build();
-		return new JdbcTokenStore(dataSource);
+	
+	@Bean 
+	public DataSource dataSource(){
+		return new EmbeddedDatabaseBuilder()
+					.setType(EmbeddedDatabaseType.H2)
+					.build();
 	}
-
+	
+	@Bean 
+	public TokenStore tokenStore() {
+		return new JdbcTokenStore(dataSource());
+	}
+	
 	@Override
 	public void configure(AuthorizationServerEndpointsConfigurer endpoints)
 			throws Exception {
@@ -55,6 +60,11 @@ public class AuthserverApplication extends AuthorizationServerConfigurerAdapter 
 			.authorizedGrantTypes("password", "refresh_token");
 	}
 
+	
+	
+	/*
+	 *  Main
+	 */
 	public static void main(String[] args) {
 		SpringApplication.run(AuthserverApplication.class, args);
 	}
