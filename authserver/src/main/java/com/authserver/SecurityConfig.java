@@ -18,8 +18,8 @@ public class SecurityConfig {
 			.jdbcAuthentication()
 				.dataSource(dataSource)
 				.withDefaultSchema()
-				.withUser("pasta").password("tonno").roles("USER")
+				.withUser("Gabriele").password("g_pass").roles("USER")
 				.and()
-				.withUser("pizza").password("wuster").roles("ADMIN");
+				.withUser("Daniela").password("d_pass").roles("ADMIN");
 	}
 }
