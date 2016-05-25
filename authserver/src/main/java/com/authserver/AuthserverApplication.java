@@ -9,10 +9,13 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerConfigurerAdapter;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerEndpointsConfigurer;
+import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerSecurityConfigurer;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.provider.token.store.JdbcTokenStore;
 
@@ -21,9 +24,11 @@ import org.springframework.security.oauth2.provider.token.store.JdbcTokenStore;
 public class AuthserverApplication extends AuthorizationServerConfigurerAdapter {
 
 	@Autowired
-	public AuthenticationManager manager;
-	
-	
+	private AuthenticationManager manager;
+
+	@Autowired
+	private UserDetailsService userDetailService;
+
 	@Bean 
 	public DataSource dataSource(){
 		return new EmbeddedDatabaseBuilder()
@@ -37,10 +42,11 @@ public class AuthserverApplication extends AuthorizationServerConfigurerAdapter 
 	}
 	
 	@Override
-	public void configure(AuthorizationServerEndpointsConfigurer endpoints)
+	public void configure(AuthorizationServerEndpointsConfigurer endpointsConfigurer)
 			throws Exception {
-		endpoints.tokenStore(tokenStore());
-		endpoints.authenticationManager(manager);	// needed to use the "password" grant_type ... 
+		endpointsConfigurer.tokenStore(tokenStore());
+		endpointsConfigurer.userDetailsService(userDetailService);
+		endpointsConfigurer.authenticationManager(manager);	// needed to use the "password" grant_type ...
 	}
 
 	@Override
@@ -60,11 +66,14 @@ public class AuthserverApplication extends AuthorizationServerConfigurerAdapter 
 			.authorizedGrantTypes("password", "refresh_token");
 	}
 
-	
-	
-	/*
-	 *  Main
-	 */
+	@Override
+	public void configure(AuthorizationServerSecurityConfigurer oauthServer) {
+		oauthServer
+				.tokenKeyAccess("permitAll()")
+				.checkTokenAccess("permitAll()");
+		// isAnonymous() || hasAuthority('ROLE_TRUSTED_CLIENT')
+	}
+
 	public static void main(String[] args) {
 		SpringApplication.run(AuthserverApplication.class, args);
 	}
